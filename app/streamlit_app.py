@@ -10,7 +10,7 @@ st.title("₿ Bitcoin Live Dashboard")
 st.caption("All metrics calculated & updated every hour • Powered by GitHub Actions")
 
 # Raw CSV URL — change only if you rename the file or folder
-CSV_URL = "https://raw.githubusercontent.com/ProsperOdal/crypto-tracker/main/data/bitcoin_market_data.csv"
+CSV_URL = "https://github.com/ProsperOdali/crypto-tracker/blob/main/data/bitcoin_market_data.csv"
 @st.cache_data(ttl=1800)  # Refresh max every 30 mins
 def load_data():
     df = pd.read_csv(CSV_URL)
