@@ -10,16 +10,27 @@ st.title("₿ Bitcoin Live Dashboard")
 st.caption("All metrics calculated & updated every hour • Powered by GitHub Actions")
 
 # Raw CSV URL — change only if you rename the file or folder
-CSV_URL = "https://github.com/ProsperOdali/crypto-tracker/blob/main/data/bitcoin_market_data.csv"
-@st.cache_data(ttl=1800)  # Refresh max every 30 mins
+# PUT THE EXACT RAW URL YOU COPIED HERE
+CSV_URL = "https://raw.githubusercontent.com/ProsperOdal/crypto-tracker/main/data/bitcoin_market_data.csv"  # ← CHANGE THIS!!
+
+@st.cache_data(ttl=1800, show_spinner="Fetching latest Bitcoin data...")
 def load_data():
-    df = pd.read_csv(CSV_URL)
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-    df['date_time'] = pd.to_datetime(df['date_time'])
-    return df.sort_values('timestamp').reset_index(drop=True)
+    try:
+        df = pd.read_csv(CSV_URL)
+        st.success(f"Data loaded successfully! {len(df)} rows")
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        if 'date_time' in df.columns:
+            df['date_time'] = pd.to_datetime(df['date_time'])
+        return df.sort_values('timestamp').reset_index(drop=True)
+    except Exception as e:
+        st.error("Could not load CSV file. Check the URL below is correct:")
+        st.code(CSV_URL)
+        st.error(f"Error: {e}")
+        return pd.DataFrame()
 
 df = load_data()
-latest = df.iloc[-1]
+if df.empty:
+    st.stop()
 
 # ==================== SIDEBAR ====================
 st.sidebar.header("₿ Current Stats")
