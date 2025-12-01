@@ -11,7 +11,7 @@ st.caption("All metrics calculated & updated every hour • Powered by GitHub Ac
 
 # Raw CSV URL — change only if you rename the file or folder
 # PUT THE EXACT RAW URL YOU COPIED HERE
-CSV_URL = "https://raw.githubusercontent.com/ProsperOdal/crypto-tracker/main/data/bitcoin_market_data.csv"  # ← CHANGE THIS!!
+CSV_URL = "https://github.com/ProsperOdali/crypto-tracker/blob/main/data/bitcoin_market_data.csv"  # ← CHANGE THIS!!
 
 @st.cache_data(ttl=1800, show_spinner="Fetching latest Bitcoin data...")
 def load_data():
