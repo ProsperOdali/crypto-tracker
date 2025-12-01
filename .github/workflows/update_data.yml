@@ -1,0 +1,16 @@
+name: Update crypto data
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # every hour
+  workflow_dispatch:  # allows manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - checkout repo
+      - set up Python
+      - install requirements (requests, pandas, etc.)
+      - run script to fetch data & save CSV
+      - commit and push CSV
