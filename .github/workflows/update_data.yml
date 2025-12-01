@@ -24,7 +24,7 @@ jobs:
           pip install requests pandas
 
       - name: Run script
-        run: python your_script.py
+        run: python fetch_and_compute.py
 
       - name: Commit and push CSV
         run: |
