@@ -58,4 +58,4 @@ def compute_metrics(filename: str):
 data = fetch_data_from_api(url)
 create_and_insert_data(data, "crypto.db")
 latest = compute_metrics("crypto.db")
-latest.to_csv("Latest_Bitcoin_market_data.csv", index=False)
+latest.to_csv("data/bitcoin_market_data.csv", index=False)
