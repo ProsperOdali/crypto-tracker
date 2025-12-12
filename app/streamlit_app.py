@@ -11,7 +11,7 @@ st.caption("All metrics calculated & updated every hour • Powered by GitHub Ac
 
 # Raw CSV URL — change only if you rename the file or folder
 # PUT THE EXACT RAW URL YOU COPIED HERE
-CSV_URL = "https://raw.githubusercontent.com/ProsperOdali/crypto-tracker/refs/heads/main/data/bitcoin_market_data.csv"  # ← CHANGE THIS!!
+CSV_URL = CSV_URL = "https://raw.githubusercontent.com/ProsperOdali/crypto-tracker/main/data/bitcoin_market_data.csv"
 
 @st.cache_data(ttl=1800, show_spinner="Fetching latest Bitcoin data...")
 def load_data():
@@ -31,6 +31,7 @@ def load_data():
 df = load_data()
 if df.empty:
     st.stop()
+latest = df.iloc[-1]  # very important
 
 # ==================== SIDEBAR ====================
 st.sidebar.header("₿ Current Stats")
