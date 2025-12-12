@@ -1,61 +1,49 @@
 import requests
-import sqlite3
 import pandas as pd
 
-url = r"https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=30"
+API_URL = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=30"
+
+def fetch_data():
+    r = requests.get(API_URL, timeout=30)
+    r.raise_for_status()
+    return r.json()
 
 
-def fetch_data_from_api(url):
-    response = requests.get(url)
-    response.raise_for_status()  # Raise an error for bad responses
-    return response.json()
+def build_dataframe(data):
+    prices = data["prices"]
+    market_caps = data["market_caps"]
+    total_volumes = data["total_volumes"]
 
-def create_and_insert_data(json_data, filename: str):
-    conn = sqlite3.connect(filename)
-    cur = conn.cursor()
+    df = pd.DataFrame({
+        "timestamp": [p[0] for p in prices],
+        "price":     [p[1] for p in prices],
+        "market_cap": [m[1] for m in market_caps],
+        "total_volume": [v[1] for v in total_volumes],
+    })
 
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS market_data (
-                timestamp INTEGER PRIMARY KEY,
-                price REAL,
-                market_cap REAL,
-                total_volume REAL);
-    """)
+    # Convert to datetime
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
 
-    prices = json_data["prices"]
-    market_caps = json_data["market_caps"]
-    total_volumes = json_data["total_volumes"]
+    # Compute metrics
+    df["returns"] = df["price"].pct_change() * 100        # percent
+    df["volatility"] = df["returns"].rolling(7).std()     # already % because returns is %
+    df["ma_7"] = df["price"].rolling(7).mean()
+    df["ma_21"] = df["price"].rolling(21).mean()
 
-    for i in range(len(prices)):
-        timestamp = int(prices[i][0])
-        price = float(prices[i][1])
-        market_cap = float(market_caps[i][1])
-        total_volume = float(total_volumes[i][1])
-
-        cur.execute("""
-        INSERT OR REPLACE INTO market_data (timestamp, price, market_cap, total_volume)
-        VALUES (?, ?, ?, ?)            
-        """, (timestamp, price, market_cap, total_volume))
-
-    conn.commit()
-    conn.close()
-    print("DB file successfully created and data successfully inserted!")
-
-def compute_metrics(filename: str):
-    conn = sqlite3.connect(filename)
-    df = pd.read_sql("SELECT * FROM market_data ORDER BY timestamp", conn)
-    conn.close()
-
-    df['datetime'] = pd.to_datetime(df['timestamp'], unit='ms')
-    df['returns'] = df['price'].pct_change()
-    df['volatility'] = df['returns'].rolling(window=7).std()
-    df['ma_7'] = df['price'].rolling(window=7).mean()
+    # Drop rows with missing values (beginning of the dataset)
+    df = df.dropna().reset_index(drop=True)
 
     return df
 
 
+def save_csv(df):
+    df.to_csv("data/bitcoin_market_data.csv", index=False)
+    print("CSV saved → data/bitcoin_market_data.csv")
+    print(f"Rows: {len(df)}")
 
-data = fetch_data_from_api(url)
-create_and_insert_data(data, "crypto.db")
-latest = compute_metrics("crypto.db").dropna()
-latest.to_csv("data/bitcoin_market_data.csv", index=False)
+
+if __name__ == "__main__":
+    print("Fetching BTC market data…")
+    raw = fetch_data()
+    df = build_dataframe(raw)
+    save_csv(df)
